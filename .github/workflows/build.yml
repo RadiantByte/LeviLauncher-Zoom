@@ -1,13 +1,10 @@
-name: Rust
+name: C++
 
 on:
   push:
     branches: ["main"]
   pull_request:
     branches: ["main"]
-
-env:
-  CARGO_TERM_COLOR: always
 
 jobs:
   build:
@@ -16,11 +13,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Download MinHook
+        run: |
+          Invoke-WebRequest -Uri "https://github.com/TsudaKageyu/minhook/archive/refs/tags/v1.3.3.zip" -OutFile minhook.zip
+          Expand-Archive minhook.zip -DestinationPath .
+          Rename-Item minhook-1.3.3 minhook
+
+      - name: Configure CMake
+        run: cmake -B build -A x64 -DCMAKE_BUILD_TYPE=Release
+
       - name: Build
-        run: cargo build --verbose --target x86_64-pc-windows-msvc --release
+        run: cmake --build build --config Release
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Zoom.dll
-          path: target/x86_64-pc-windows-msvc/release/Zoom.dll
+          path: build/Release/Zoom.dll
